@@ -15,6 +15,7 @@ var your_mail  = 'your_account_mail@somehost.com'; // see in app, registered acc
 var clientId   = 'Android_' + your_mail;
 var deviceId   = 'your-device-id'; // see in app connected device section, something like F9987D92-E180-64DE-A202-D43AAD0D5784
 var channelId  = 1; // channel beetwen station & external sensors block
+var timeOut    = 30000; // 30 seconds timeout
 
 var timeInMs   = Date.now();
 var uniqTopic  = md5(timeInMs).toUpperCase().insert(8,'-').insert(13,'-').insert(18,'-').insert(23,'-');
@@ -26,6 +27,10 @@ var client = mqtt.connect( {
 });
 
 client.on('connect', function() {
+  timeOutTimer = setTimeout(() => {
+		client.end();
+		process.exit(1);
+	}, timeOut);
   client.subscribe('enno/out/json/'+uniqTopic,
     function(err) {
       if (!err) {
@@ -37,6 +42,8 @@ client.on('connect', function() {
 });
 
 client.on('message', function(topic, message) {
-  console.log(message.toString())
-  client.end()
+  console.log(message.toString());
+  client.end();
+  clearTimeout(timeOutTimer);
+	process.exit(1);
 });
